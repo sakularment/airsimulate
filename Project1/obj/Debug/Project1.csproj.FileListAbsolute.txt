@@ -1,0 +1,6 @@
+D:\homework\研一上\航空仿真\项目\Project1\Project1\bin\Debug\Project1.exe.config
+D:\homework\研一上\航空仿真\项目\Project1\Project1\obj\Debug\Project1.csprojResolveAssemblyReference.cache
+D:\homework\研一上\航空仿真\项目\Project1\Project1\bin\Debug\Project1.exe
+D:\homework\研一上\航空仿真\项目\Project1\Project1\bin\Debug\Project1.pdb
+D:\homework\研一上\航空仿真\项目\Project1\Project1\obj\Debug\Project1.exe
+D:\homework\研一上\航空仿真\项目\Project1\Project1\obj\Debug\Project1.pdb
