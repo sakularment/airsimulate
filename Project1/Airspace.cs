@@ -1,96 +1,104 @@
-﻿using System;
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 namespace Project1
 {
-    class Airspace
+    //结构体方位，用于表示飞机的三维位置（x,y,z）
+    struct Location
     {
-        public Plane[] aircrafts;
-        public int world_time;
-        public int num=0;
-        public int size=10;
-        public Airspace(int size) {
-            this.world_time = 0;
-            this.size = size;
-            this.aircrafts=new Plane[this.size];
-            //aircrafts=new ArrayList();
-        }
-        //添加新飞机
-        public bool Add_newaircrafts() {
-            if (num == size)
-            {
-                return false;
-            }
-            Plane temp=new Plane(num);
-            aircrafts[num] = temp;
-            num++;
-            Console.WriteLine("一架飞机已经创建");
-            return true;
-        }
-        //批量添加新飞机 调用添加Add_newaircrafts()方法
-        public bool Add_newaircrafts(int n) {
-            if (n + num > size) { Console.WriteLine("太多了"); return false; }
-            else {
-                for (int i = 0; i < n; i++) { this.Add_newaircrafts(); }
-            }
-            return true;
-        }
-        //时间经过函数
-        public bool Time_go() {
-            this.world_time++;
-            for (int i = 0; i < this.num; i++){
-                this.aircrafts[i].Fly();
-            }
-            return true;
-        }
-        //度过一段时间,调用了n次上面的函数 测试函数
-        public bool Time_go(int n) {
-            for (int i = 0; i < n; i++) {
-                this.Time_go();
-            }
-            return true;
-        }
-        //显示空域中所有飞机的信息
-        public string Show_allinformation()
+        public double X;
+        public double Y;
+        public double H;
+        public Location(double x, double y, double h) { this.X = x; this.Y = y; this.H = h; }
+        public string output() { return "(" + this.X + "," + this.Y + "," + this.H + ")"; }
+    }
+    class Plane
+    {
+        public string P_id;
+        public double dimian_speed;
+        public double kongzhong_speed;
+        public double slope=0;
+        public double PMH;
+        public Location now_location;
+        public List<Location> trajectory;
+        public int fly_time;
+        //航向转换为X，Y方向的线速度
+        private double PMHtoX(double pmh)
         {
-            string info="";
-            for (int i=0;i<this.num;i++){
-                info = info + this.aircrafts[i].Show_information()+"\n";
-            }
-            return info;
+            return Math.Sin(pmh);
         }
-        //显示空域所有飞机的轨迹
-        public string Show_alltra() {
-            string info = "";
-            foreach (Plane x in this.aircrafts)
-            {
-                info = info + x.Show_trajectory()+"\n";
-            }
-            return info;
+        private double PMHtoY(double pmh)
+        {
+            return Math.Cos(pmh);
         }
-        //主体函数
-        static void Main(string[] args){
-            Console.Write("输入空域中可容纳的飞机数量：");
-            string s1 = Console.ReadLine();
-            Airspace asp = new Airspace(int.Parse(s1));
-            while (true)
-            {
-                Console.Write(">>");
-                string s = Console.ReadLine();
-                if (s == "exit") { break; }
-                    //新建飞机指令
-                else if (s == "new") { string s2 = Console.ReadLine(); asp.Add_newaircrafts(int.Parse(s2)); }
-                    //显示飞机信息指令
-                else if (s == "info") { Console.WriteLine(asp.Show_allinformation()); }
-                //时间流逝指令
-                else if (s == "go") { string s2 = Console.ReadLine(); asp.Time_go(int.Parse(s2)); Console.WriteLine("时间流逝了"+s2+"秒，现在是第" + asp.world_time + "秒"); }
-                    //显示飞机轨迹指令
-                else if (s == "trac") { Console.WriteLine(asp.aircrafts[0].Show_trajectory()); }
-                    //报错
-                else { Console.WriteLine("无效的指令,输入help获取指令集");}
+        //构造函数
+        //测试函数，可以根据传入的数值n来产生随机的地面速度和航向，数值n是飞机的顺序编号
+        public Plane(int n)
+        {
+            n = n + 1;
+            Random random = new Random(n);
+            this.P_id = n.ToString();
+            this.fly_time = 0;
+            this.dimian_speed = random.Next(100, 999);
+            this.kongzhong_speed = 0;
+            this.PMH = Math.PI * (random.Next(0, 360) / 180.0);
+            this.now_location = new Location(0, 0, 0);
+            this.trajectory = new List<Location>();
+            this.trajectory.Add(this.now_location);
+        }
+        //实际应用函数，可以根据传入的飞机参数构建一架飞机
+        public Plane(string P_id, double d_s, double k_s, double PMH, double x, double y, double h)
+        {
+            this.fly_time = 0;
+            this.P_id = P_id;
+            this.dimian_speed = d_s;
+            this.kongzhong_speed = k_s;
+            this.PMH = PMH;
+            this.now_location = new Location(x, y, h);
+            this.trajectory = new List<Location>();
+            this.trajectory.Add(this.now_location);
+        }
+        //析构函数，回收内存用
+        ~Plane()
+        {
+        }
+        //飞行执行函数
+        public void Fly()
+        {
+            this.fly_time++;
+            //先判断是否已经在转弯位置，如果在则调用Turn（）来获取下一秒的位置，不然则根据PMH算出下一秒的位置
+            if (If_turn()){
+                Turn();
+            }else{
+                this.now_location.X = this.now_location.X + dimian_speed * PMHtoX(this.PMH);
+                this.now_location.Y = this.now_location.Y + dimian_speed * PMHtoY(this.PMH);
             }
+            trajectory.Add(this.now_location);
+        }
+
+        //抽象方法,根据飞机当前位置来判断是否应该转弯的方法，待实现
+        public bool If_turn() { return false; }
+        //抽象方法,飞机的转弯方法，由YH实现
+        public bool Turn(){return true;}
+
+        //显示飞机的信息
+        public string Show_information()
+        {
+            return this.P_id + "号飞机" + "当前位置：" + this.now_location.output() + "地面速度：" + this.dimian_speed + "航向：" + this.PMH;
+        }
+        //显示航线信息
+        public string Show_trajectory()
+        {
+            string return_information = "航行轨迹：";
+            foreach (Location l in this.trajectory)
+            {
+                return_information = return_information + l.X + "," + l.Y + "," + l.H + "|";
+            }
+            return return_information;
         }
     }
+
 }
