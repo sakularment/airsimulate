@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Collections;
 namespace Project1
 {
-    //测试哈哈哈
+    //结构体方位，用于表示飞机的三维位置（x,y,z）
     struct Location
     {
         public double X;
@@ -69,10 +69,21 @@ namespace Project1
         public void Fly()
         {
             this.fly_time++;
-            this.now_location.X = this.now_location.X + dimian_speed * PMHtoX(this.PMH);
-            this.now_location.Y = this.now_location.Y + dimian_speed * PMHtoY(this.PMH);
+            //先判断是否已经在转弯位置，如果在则调用Turn（）来获取下一秒的位置，不然则根据PMH算出下一秒的位置
+            if (If_turn()){
+                Turn();
+            }else{
+                this.now_location.X = this.now_location.X + dimian_speed * PMHtoX(this.PMH);
+                this.now_location.Y = this.now_location.Y + dimian_speed * PMHtoY(this.PMH);
+            }
             trajectory.Add(this.now_location);
         }
+
+        //抽象方法,根据飞机当前位置来判断是否应该转弯的方法，待实现
+        public bool If_turn() { return false; }
+        //抽象方法,飞机的转弯方法，由YH实现
+        public bool Turn(){return true;}
+
         //显示飞机的信息
         public string Show_information()
         {
